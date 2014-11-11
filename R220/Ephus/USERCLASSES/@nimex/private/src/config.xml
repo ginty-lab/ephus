@@ -1,0 +1,10 @@
+<project name="NIMEXConfig">
+  
+  <property name="MATLAB" value="C:\Program Files\MATLAB\R2007a" description="Path to the Matlab installation (needed for access to headers and libraries)."/>
+  <property name="NIDAQmx" value="C:\Program Files\National Instruments\NI-DAQ\DAQmx ANSI C Dev" description="Path to the 'DAQmx ANSI C Dev' directory from National Instruments."/>
+  <property name="GLib" value="C:\dev\glib-dev-2.12.11" description="Path to the GLib development libraries."/>
+  <property name="CLASSDEST" value="../Matlab" description="The path in which to find the @nimex and @nimexEngine class directories."/>
+  <property name="CompileForDebug" value="false" description="If debugging set to 'true', 'false' otherwise."/>
+  <property name="NIMEX_VERBOSITY" value="0" description="0-4, with 0 being silent and 4 being most verbose."/>
+
+</project>

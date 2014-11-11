@@ -1,0 +1,86 @@
+<project name="NIMEX" default="compile" basedir="." xmlns:cpptasks="antlib:net.sf.antcontrib.cpptasks">
+<!-- <project name="NIMEX" default="doc" basedir="." xmlns:cpptasks="antlib:net.sf.antcontrib.cpptasks"> -->
+  <description>Nimex build system.</description>
+
+  <import file="./config.xml"/>
+
+  <property name="SRC" location="./src"/>
+  <property name="BUILD" location="../build/win32"/>
+  <property name="DOC" location="../doc"/>
+
+  <taskdef resource="cpptasks.tasks"/>
+
+  <target name="destInit">
+    <!-- <tstamp/> -->
+    <mkdir dir="${BUILD}"/>
+  </target>
+
+  <target name="init">
+  </target>
+  
+  <compiler name="msvc" id="msvc-nonmex" extends="cc">
+    <compilerarg value="/c"/>
+    <compilerarg value="/O2"/>
+    <compilerarg value="-DNIMEX_LOCALTIME_DEPRECATED"/>
+    <compilerarg value="-DNIMEX_COMPILER_CL"/>
+    <compilerarg value="-DNIMEX_VERBOSE_${VERBOSITY}"/>
+    <compilerarg value="-DNDEBUG"/>
+  </compiler>
+  
+  <compiler name="msvc" id="msvc-mex" extends="msvc-nonmex">
+    <compilerarg value="-DMATLAB_MEX_FILE"/>
+
+  <target name="compileShared" depends="init" description="Compile the shared C code.">
+   <cpptasks:cc subsystem="console" objdir="${BUILD}" name="msvc-nonmex" inherit="true" id="PrimaryCompile" optimize="speed">
+
+     <fileset dir="${SRC}/c" includes="*.c"/>
+call NIMEX_compile.bat NIMEX_memManagement
+call NIMEX_compile.bat NIMEX_genericStructures
+call NIMEX_compile.bat NIMEX_utilities
+call NIMEX_compile.bat NIMEX_Objects
+call NIMEX_compile.bat NIMEX_Callbacks
+   </cpptasks:cc>
+  </target>
+
+  <target name="compileMex" depends="compileShared" description="Compile the mex C code.">
+   <cpptasks:cc subsystem="console" objdir="${BUILD}" name="msvc-mex" inherit="true" id="PrimaryCompile" optimize="speed">
+     <fileset dir="${SRC}/c" includes="*.c"/>
+   </cpptasks:cc>
+  </target>
+
+  <target name="link" depends="compileMex" description="Link the C code.">
+  </target>
+
+  <target name="doc">
+    <exec executable="Doxygen" dir="${DOC}">
+    </exec>
+  </target>
+
+  <target name="deploy" depends="link"> 
+    <copy todir="${CLASSDEST}\@nimex\private" verbose="true" overwrite="true">
+      <fileset dir="${BUILD}" casesensitive="yes">
+        <patternset id="nimex.mex.files"/>
+        <include name="NIMEX_*.mexw32"/>
+      </fileset>
+    </copy>
+    <copy todir="${CLASSDEST}\@nimexEngine\private" verbose="true" overwrite="true">
+      <fileset dir="${BUILD}" casesensitive="yes">
+        <patternset id="nimexEng.mex.files"/>
+        <include name="NIMEXEng_*.mexw32"/>
+      </fileset>
+    </copy>
+  </target>
+
+  <target name="distribution" depends="deploy"> 
+    <tstamp>
+      <format property="FILENAME_TSTAMP" pattern="MM_dd_yyyy-HH_mm"/>
+    </tstamp>
+    <zip destfile="${BUILD}/nimex-${FILENAME_TSTAMP}.zip" basedir="${CLASSDEST}">
+    </zip>
+  </target>
+
+  <target name="clean" description="clean up" >
+    <delete dir="${BUILD}"/>
+  </target>
+</project>
+

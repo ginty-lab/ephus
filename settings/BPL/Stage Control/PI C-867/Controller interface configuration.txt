@@ -1,0 +1,6 @@
+Controller AI1 is trigger
+WAC DIO? 1 = 1
+
+AO 1 and 2 are output position markers for axes 1 and 2
+
+AO 4 triggers stim on power stroke.
