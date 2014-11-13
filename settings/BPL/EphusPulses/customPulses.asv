@@ -1,0 +1,34 @@
+Fs = 40000;
+% make ramps
+fsig = signalobject('Name',['framps'] ,'sampleRate', Fs);
+lsig = signalobject('Name',['lramps'] ,'sampleRate', Fs);
+[lr,fr] = indentStim(); 
+literal(fsig, fr);
+literal(lsig, lr);
+% make ramps
+fsig = signalobject('Name',['fr'] ,'sampleRate', Fs);
+lsig = signalobject('Name',['lr'] ,'sampleRate', Fs);
+literal(fsig, fr);
+literal(lsig, lr);
+
+
+
+destDir = getDefaultCacheDirectory(progmanager, 'myCustomPulses');
+if strcmpi(destDir, pwd)
+     destDir = getDefaultCacheDirectory(progmanager, 'pulseDir');
+end
+destDir = uigetdir(destDir, 'Choose a pulseSet for the destination of new pulses.');
+if length(destDir) == 1
+     if destDir == 0
+          return;
+     end
+end
+if exist(destDir, 'dir')
+   
+     error('pulseDest must be a valid directory: ''%s'' does not exist.', destDir);
+end
+setDefaultCacheValue(progmanager, 'myCustomPulses', destDir);
+
+for signal = allPulses
+    saveCompatible(fullfile(destDir, [get(signal, 'Name') '.signal']), 'signal', '-mat');
+end
