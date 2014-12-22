@@ -5,7 +5,7 @@ import copy
 
 import scipy.io
 
-__all__ = ['parseXSG', 'mergeXSGs', 'parseXSGHeader']
+__all__ = ['parseXSG', 'mergeXSGs', 'parseXSGHeader', 'summarizeXSGs']
 
 def parseXSG(filename):
     """Function to parse the XSG file format.  Returns a dictionary
@@ -13,16 +13,16 @@ def parseXSG(filename):
     channels), and data.  Data is stored in sub-dictionaries, one for
     each ephus program (ephys, acquirer, etc).  In turn, each of those
     dictionaries contains a numpy array with the raw values.
-
+ 
     There is a lot going on here to deal with the fact that different
     programs can be active, and in particular, stimulator pulses can
     be specified in different ways.  In the end, we have numpy arrays
     of what was sent out and what was recorded.
-
+ 
     There are a couple of fields that seem superfluous, but they are
     to ensure compatibility for extracellular analysis routines from
     spike sort.
-
+ 
     :param: filename: string of .xsg file to parse.
     :returns: dictionary of values as described above
     """
@@ -30,7 +30,7 @@ def parseXSG(filename):
 
     header = s2d(raw['header'])
     data = s2d(raw['data'])
-    
+
     xsgDict = {}
     for prog in ['ephys', 'acquirer', 'stimulator']:
         xsgDict[prog] = {}
@@ -42,6 +42,12 @@ def parseXSG(filename):
     xsgDict['xsgExperimentNumber'] = header['xsg']['xsg']['experimentNumber']
     xsgDict['date'] = matlabDateString2DateTime(header['xsgFileCreationTimestamp'])
     xsgDict['dateString'] = header['xsgFileCreationTimestamp']
+    xsgDict['animalAge'] = int(header['headerGUI']['headerGUI']['animalAge'])
+    xsgDict['gender'] = header['headerGUI']['headerGUI']['gender']
+    xsgDict['transgenicLine'] = header['headerGUI']['headerGUI']['transgenicLine']
+    xsgDict['whatTreatment'] = header['headerGUI']['headerGUI']['whatTreatment']
+    xsgDict['virusAge'] = int(header['headerGUI']['headerGUI']['virusAge'])
+    xsgDict['construct_vi'] = header['headerGUI']['headerGUI']['construct_vi']
 
     # import ephys and acquirer data
 
@@ -51,7 +57,6 @@ def parseXSG(filename):
         except AttributeError:
             xsgDict[prog] = None
             continue
-
         for suffix in unique_channel_suffixes:
             chanName= data[prog]['channelName_'+suffix]
             if not isinstance(chanName, (unicode, str)):
@@ -71,64 +76,63 @@ def parseXSG(filename):
     try:
         if header['stimulator']['stimulator']['startButton']: # stimulator was engaged
 
-            # put all the square pulse stims in 
-            try: 
-                sampleRate = int(header['stimulator']['stimulator']['sampleRate'])
-                traceLength = int(header['stimulator']['stimulator']['traceLength'])
+            # # put all the square pulse stims in
+            # try:
+            #     sampleRate = int(header['stimulator']['stimulator']['sampleRate'])
+            #     traceLength = int(header['stimulator']['stimulator']['traceLength'])
+            #     if header['stimulator']['stimulator']['channelList'] > 1:
+            #
+            #         # list format
+            #         # 0: type
+            #         # 1: some date
+            #         # 2: some date
+            #         # 3: some date
+            #         # 4: gain?
+            #         # 5: name
+            #         # 6: sample rate
+            #         # 7: amplitude
+            #         # 8: 0,  offset?
+            #         # 9: number of pulses
+            #         # 10: isi
+            #         # 10: witdh
+            #         # 11: delay
+            #
+            #         for on, pulse in zip(header['stimulator']['stimulator']['stimOnArray'], range(header['stimulator']['stimulator']['channelList'])):
+            #
+            #             delay = header['stimulator']['stimulator']['pulseParameters'][pulse][12] * sampleRate
+            #             offset = header['stimulator']['stimulator']['pulseParameters'][pulse][8] * sampleRate
+            #             amp = header['stimulator']['stimulator']['pulseParameters'][pulse][7]
+            #             ISI = header['stimulator']['stimulator']['pulseParameters'][pulse][10] * sampleRate
+            #             width = header['stimulator']['stimulator']['pulseParameters'][pulse][11] * sampleRate
+            #             number_of_pulses = int(header['stimulator']['stimulator']['pulseParameters'][pulse][9])
+            #
+            #             stim_array = np.zeros(sampleRate*traceLength) + offset
+            #
+            #             for pulse_number in range(number_of_pulses):
+            #                 start = int(pulse_number * ISI + delay)
+            #                 end = int(start + width)
+            #                 stim_array[start:end] = amp
+            #             if on :
+            #                 xsgDict['stimulator'][header['stimulator']['stimulator']['channels']['channelName'][pulse]] = stim_array
+            #     else: #single pulse!
+            #         delay = header['stimulator']['stimulator']['pulseParameters']['squarePulseTrainDelay'] * sampleRate
+            #         offset = header['stimulator']['stimulator']['pulseParameters']['offset'] * sampleRate
+            #         amp = header['stimulator']['stimulator']['pulseParameters']['amplitude']
+            #         ISI = header['stimulator']['stimulator']['pulseParameters']['squarePulseTrainISI'] * sampleRate
+            #         width = header['stimulator']['stimulator']['pulseParameters']['squarePulseTrainWidth'] * sampleRate
+            #         number_of_pulses = int(header['stimulator']['stimulator']['pulseParameters']['squarePulseTrainNumber'])
+            #
+            #
+            #         stim_array = np.zeros(sampleRate*traceLength) + offset
+            #
+            #         for pulse_number in range(number_of_pulses):
+            #             start = pulse_number * ISI + delay
+            #             end = start + width
+            #             stim_array[start:end] = amp
+            #         xsgDict['stimulator'][header['stimulator']['stimulator']['channels']['channelName']] = stim_array
+            # except:
+            #     print 'no standard pulses?'
 
-                if header['stimulator']['stimulator']['channelList'] > 1:
-
-                    # list format
-                    # 0: type
-                    # 1: some date
-                    # 2: some date
-                    # 3: some date
-                    # 4: gain?
-                    # 5: name
-                    # 6: sample rate
-                    # 7: amplitude
-                    # 8: 0,  offset?
-                    # 9: number of pulses
-                    # 10: isi
-                    # 10: witdh 
-                    # 11: delay
-                    
-                    for on, pulse in zip(header['stimulator']['stimulator']['stimOnArray'], range(header['stimulator']['stimulator']['channelList'])):
-                        
-                        delay = header['stimulator']['stimulator']['pulseParameters'][pulse][12] * sampleRate
-                        offset = header['stimulator']['stimulator']['pulseParameters'][pulse][8] * sampleRate
-                        amp = header['stimulator']['stimulator']['pulseParameters'][pulse][7]
-                        ISI = header['stimulator']['stimulator']['pulseParameters'][pulse][10] * sampleRate
-                        width = header['stimulator']['stimulator']['pulseParameters'][pulse][11] * sampleRate
-                        number_of_pulses = int(header['stimulator']['stimulator']['pulseParameters'][pulse][9])
-
-                        stim_array = np.zeros(sampleRate*traceLength) + offset
-
-                        for pulse_number in range(number_of_pulses):
-                            start = int(pulse_number * ISI + delay)
-                            end = int(start + width)
-                            stim_array[start:end] = amp
-                        if on :
-                            xsgDict['stimulator'][header['stimulator']['stimulator']['channels']['channelName'][pulse]] = stim_array
-                else: #single pulse!
-                    delay = header['stimulator']['stimulator']['pulseParameters']['squarePulseTrainDelay'] * sampleRate
-                    offset = header['stimulator']['stimulator']['pulseParameters']['offset'] * sampleRate
-                    amp = header['stimulator']['stimulator']['pulseParameters']['amplitude']
-                    ISI = header['stimulator']['stimulator']['pulseParameters']['squarePulseTrainISI'] * sampleRate
-                    width = header['stimulator']['stimulator']['pulseParameters']['squarePulseTrainWidth'] * sampleRate
-                    number_of_pulses = int(header['stimulator']['stimulator']['pulseParameters']['squarePulseTrainNumber'])
-
-
-                    stim_array = np.zeros(sampleRate*traceLength) + offset
-
-                    for pulse_number in range(number_of_pulses):
-                        start = pulse_number * ISI + delay
-                        end = start + width
-                        stim_array[start:end] = amp
-                    xsgDict['stimulator'][header['stimulator']['stimulator']['channels']['channelName']] = stim_array
-            except:
-                print 'no standard pulses?'
-           
 
             # put all the literal pulses in
             try:
@@ -210,36 +214,6 @@ def s2d(s):
     else:
         return s
 
-def matlabDateString2DateTime(dateString):
-    """This a simple routine that parses a string from Matlab
-    and turns it into a DateTime object"""
-
-    months = {
-        'Jan' : 1,
-        'Feb' : 2,
-        'Mar' : 3,
-        'Apr' : 4,
-        'May' : 5,
-        'Jun' : 6,
-        'Jul' : 7,
-        'Aug' : 8,
-        'Sep' : 9,
-        'Oct' : 10, 
-        'Nov' : 11,
-        'Dec' : 12
-        }
-
-    date = dateString.split(' ')[0].split('-')
-    time = dateString.split(' ')[1].split(':')
-
-    year =int(date[2])
-    month = months[date[1]]
-    day = int(date[0])
-    hour = int(time[0])
-    minute = int(time[1]) 
-    second = int(time[2])
-
-    return datetime.datetime(year, month, day, hour, minute, second)
 
 def mergeXSGs(xsg1, xsg2):
     """This routine merges two xsg dictionaries, concatenating every
