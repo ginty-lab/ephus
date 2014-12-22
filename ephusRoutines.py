@@ -5,7 +5,7 @@ import copy
 
 import scipy.io
 
-__all__ = ['parseXSG', 'mergeXSGs', 'parseXSGHeader', 'summarizeXSGs']
+__all__ = ['parseXSG', 'mergeXSGs', 'parseXSGHeader']
 
 def parseXSG(filename):
     """Function to parse the XSG file format.  Returns a dictionary
@@ -214,6 +214,36 @@ def s2d(s):
     else:
         return s
 
+def matlabDateString2DateTime(dateString):
+    """This a simple routine that parses a string from Matlab
+    and turns it into a DateTime object"""
+
+    months = {
+        'Jan' : 1,
+        'Feb' : 2,
+        'Mar' : 3,
+        'Apr' : 4,
+        'May' : 5,
+        'Jun' : 6,
+        'Jul' : 7,
+        'Aug' : 8,
+        'Sep' : 9,
+        'Oct' : 10, 
+        'Nov' : 11,
+        'Dec' : 12
+        }
+
+    date = dateString.split(' ')[0].split('-')
+    time = dateString.split(' ')[1].split(':')
+
+    year =int(date[2])
+    month = months[date[1]]
+    day = int(date[0])
+    hour = int(time[0])
+    minute = int(time[1]) 
+    second = int(time[2])
+
+    return datetime.datetime(year, month, day, hour, minute, second)
 
 def mergeXSGs(xsg1, xsg2):
     """This routine merges two xsg dictionaries, concatenating every
