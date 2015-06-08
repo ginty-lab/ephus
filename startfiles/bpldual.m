@@ -68,7 +68,7 @@ yVideoImageSize = [];
 amp(1).amplifierType = 'multi_clamp';              % One of {'multi_clamp' 'axopatch_200B'}. Identifies type of amplifier device.
 amp(1).scaledOutputBoardID = [1];        % Number identifying DAQmx board (e.g. 1 for 'Dev1') on which 'scaled output' signal from amplifier channel is input to Ephus
 amp(1).scaledOutputChannelID = [0];      % Number identifying DAQmx channel on board identified by 'scaledOutputBoardID' on which 'scaled output' signal from amplifier channelis input to Ephus
-amp(1).vComBoardID = [1];                % Number identifying DAQmx board (e.g. 2 for 'Dev2') on which command signal from Ephus is output to amplifier channel   
+amp(1).vComBoardID = [2];                % Number identifying DAQmx board (e.g. 2 for 'Dev2') on which command signal from Ephus is output to amplifier channel   
 amp(1).vComChannelID = [0];              % Number identifying DAQmx channel on board identified by 'vComBoardID' on which command signal from Ephus is output to amplifier channel   
 amp(1).amplifierChannelID = [2];         %(MULTICLAMP ONLY) Identifies which amplifier 'channel' on the amplifier device, e.g. 1 or 2 on Multiclamp amplifiers.
 amp(1).serialNumber = [];               %(MULTICLAMP 700B ONLY) Identifies serial number of amplifier device on which this channel is located
@@ -85,14 +85,14 @@ amp(1).vHoldChannelID = [];             %(AXOPATCH 200B ONLY) Number identifying
 %Following section configures general (non-Mapper) input/output channels to be made available for use by Ephus 
 
 %Acquirer channels (Analog Input)
-acqChannelNames = {'forceIn','lengthIn','strainForce', 'stageX','stageY','ao0','ao1','ao2','ao3'};     % Cell array of descriptive names for analog input acquisition channels to configure, e.g. {'Lick Sensor' 'Nose Poke Sensor'}, 
-acqBoardIDs = [1 1 1 1 1 1 1 1 1];                       % A single number (e.g. 1 for 'Dev1') specifying DAQmx board for /all/ named acquisition channels; or, an array of numbers of length equal to 'acqChannelNames' (e.g. [1 1 1 2 2] indicating 'Dev1' for first 3 channels, 'Dev2' for last 2 channels) identifying DAQmx board on which each of the named acquisition channels appears. 
-acqChannelIDs =  [1,2,3,4,5,20,21,22,23,24];                    % Array of numbers, of length equal to 'acqChannelNames', identifying DAQmx channel number (e.g. 1 for AI1) for each of the named acquisition channels (e.g. [0 1 2 0 1] indicating AI0-2 for first 3 channels  and AI0-1 for last 2 channels, for case of multiple boards). 
+acqChannelNames = {'forceIn','lengthIn','strainForce', 'stgX','stgY','sync2P','ao0In','forceOutIn','lengthOutIn','stageIn','aob1In','stimIn','puffIn','aob3'};     % Cell array of descriptive names for analog input acquisition channels to configure, e.g. {'Lick Sensor' 'Nose Poke Sensor'}, 
+acqBoardIDs = [1 1 1 1 1 1 1 1 1 1 1 2 2 2 2];                       % A single number (e.g. 1 for 'Dev1') specifying DAQmx board for /all/ named acquisition channels; or, an array of numbers of length equal to 'acqChannelNames' (e.g. [1 1 1 2 2] indicating 'Dev1' for first 3 channels, 'Dev2' for last 2 channels) identifying DAQmx board on which each of the named acquisition channels appears. 
+acqChannelIDs =  [1,2,3,4,5,16,20,21,22,23,24,0,1,16,24];                    % Array of numbers, of length equal to 'acqChannelNames', identifying DAQmx channel number (e.g. 1 for AI1) for each of the named acquisition channels (e.g. [0 1 2 0 1] indicating AI0-2 for first 3 channels  and AI0-1 for last 2 channels, for case of multiple boards). 
 
 %Stimulator channels (Analog Output) 
-stimChannelNames = {'forceOut', 'lengthOut', 'led', 'stage', 'stim', 'ao2_2', 'ao2_3'};                  % Cell array of descriptive names for analog output stimulus channels to configure, e.g. {'Whisker Stimulator' 'Position Encoder'}, 
-stimBoardIDs = [1 1 1 2 2 2 2];                      % A single number (e.g. 1 for 'Dev1') specifying DAQmx board for /all/ named analog stimulus channels; or, an array of numbers of length equal to 'stimChannelNames' (e.g. [1 1 1 2 2] indicating 'Dev1' for first 3 channels, 'Dev2' for last 2 channels) identifying DAQmx board on which each of the named analog stimulus channels appears. 
-stimChannelIDs = [1,2,3];                    % Array of numbers, of length equal to 'stimChannelNames', identifying DAQmx channel number (e.g. 1 for AI1) for each of the named analog stimulus channels (e.g. [0 1 2 0 1] indicating AI0-2 for first 3 channels  and AI0-1 for last 2 channels, for case of multiple boards). 
+stimChannelNames = {'ao0', 'forceOut', 'lengthOut', 'stage', 'stim', 'puff', 'flex'};                  % Cell array of descriptive names for analog output stimulus channels to configure, e.g. {'Whisker Stimulator' 'Position Encoder'}, 
+stimBoardIDs = [1 1 1 1 2 2 2];                      % A single number (e.g. 1 for 'Dev1') specifying DAQmx board for /all/ named analog stimulus channels; or, an array of numbers of length equal to 'stimChannelNames' (e.g. [1 1 1 2 2] indicating 'Dev1' for first 3 channels, 'Dev2' for last 2 channels) identifying DAQmx board on which each of the named analog stimulus channels appears. 
+stimChannelIDs = [0 1 2 3 1 2 3];                    % Array of numbers, of length equal to 'stimChannelNames', identifying DAQmx channel number (e.g. 1 for AI1) for each of the named analog stimulus channels (e.g. [0 1 2 0 1] indicating AI0-2 for first 3 channels  and AI0-1 for last 2 channels, for case of multiple boards). 
 
 %Stimulator channels (Digital Output)
 digStimChannelNames = {};               % Cell array of descriptive names for digital output stimulus channels to configure, e.g. {'Camera Trigger' 'LED Pulse'}
@@ -136,8 +136,8 @@ triggerDestinations = {'PFI0'};             %(REQUIRED) Cell array of one or mor
 % The 'sampleClockDestination' is a PFI terminal name (e.g. 'PFI1') which should 
 % be physically connected to the 'sampleClockOrigin' or external clock source (case 3)
 
-sampleClockOrigin = '';                 % Full DAQmx specification of counter output channel on /one/ board (e.g. '/dev1/ctr0') on which the sample clock is generated.
-sampleClockDestination = '';            % A DAQmx PFI terminal name (e.g. 'PFI1') on which sample clock is input on /all/ of the boards used by Ephus
+sampleClockOrigin = '/dev1/ctr0';                 % Full DAQmx specification of counter output channel on /one/ board (e.g. '/dev1/ctr0') on which the sample clock is generated.
+sampleClockDestination = 'PFI14';            % A DAQmx PFI terminal name (e.g. 'PFI1') on which sample clock is input on /all/ of the boards used by Ephus
 
 %% ADVANCED CONFIGURATION
 %Rarely re-configured variables are contained here. In addition, other variables/functions may be appended to this section for advanced configuration options.
